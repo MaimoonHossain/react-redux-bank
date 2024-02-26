@@ -1,13 +1,32 @@
-import { combineReducers, createStore } from 'redux';
+import { applyMiddleware, combineReducers, createStore } from 'redux';
 import accountReducer from './features/accounts/accountSlice';
 import customerReducer from './features/customers/customerSlice';
+import { composeWithDevTools } from 'redux-devtools-extension';
+import { thunk } from 'redux-thunk';
+import { configureStore } from '@reduxjs/toolkit';
 
-const rootReducer = combineReducers({
-  account: accountReducer,
-  customer: customerReducer,
+// const rootReducer = combineReducers({
+//   account: accountReducer,
+//   customer: customerReducer,
+// });
+
+// const store = createStore(rootReducer);
+
+// We want to use the thunk middlewear into our application.
+// When we use thunk. We instead of returning an action object, we can return a function. This function will receive dispatch and getState as arguments. We can use these to dispatch multiple actions or to get the current state of the store.
+
+// const store = createStore(
+//   rootReducer,
+//   composeWithDevTools(applyMiddleware(thunk))
+// );
+
+// using redux toolkit
+const store = configureStore({
+  reducer: {
+    account: accountReducer,
+    customer: customerReducer,
+  },
 });
-
-const store = createStore(rootReducer);
 
 export default store;
 

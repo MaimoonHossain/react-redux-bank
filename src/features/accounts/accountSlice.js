@@ -2,6 +2,7 @@ const initialStateAccount = {
   balance: 0,
   loan: 0,
   loanPurpose: '',
+  isLoading: false,
 };
 
 export default function accountReducer(state = initialStateAccount, action) {
@@ -10,6 +11,8 @@ export default function accountReducer(state = initialStateAccount, action) {
       return {
         ...state,
         balance: state.balance + action.payload,
+        // After deposit set isLoading to false
+        isLoading: false,
       };
     case 'account/withdraw':
       return {
@@ -31,13 +34,34 @@ export default function accountReducer(state = initialStateAccount, action) {
         loanPurpose: '',
         loan: 0,
       };
+    case 'account/convertingCurrency':
+      return {
+        ...state,
+        isLoading: true,
+      };
     default:
       return state;
   }
 }
 
-export function deposit(amount) {
-  return { type: 'account/deposit', payload: amount };
+export function deposit(amount, currency) {
+  if (currency === 'USD') return { type: 'account/deposit', payload: amount };
+
+  // when redux will see that we are returning a function. It'll immediately identify that it's a redux thunk. so, it'll execute the function and pass the dispatch and getState as arguments. It'll not dispatch the action immediately. It'll wait for the function to finish and then dispatch the action.
+
+  // This function is sitting between the initial dispatching and the reducer in the store receiving the action. It's a middleware that allows us to do something before the action reaches the reducer.
+  return async function (dispatch, getState) {
+    dispatch({ type: 'account/convertingCurrency' });
+    // Api call
+    const res = await fetch(
+      `https://api.frankfurter.app/latest?amount=${amount}&from=${currency}&to=USD`
+    );
+
+    const data = await res.json();
+    const converted = data.rates.USD;
+    // return action
+    dispatch({ type: 'account/deposit', payload: converted });
+  };
 }
 
 export function withdraw(amount) {
